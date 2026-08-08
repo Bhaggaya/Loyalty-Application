@@ -1,0 +1,6 @@
+{
+  "name": "Loyalty Merchant Dashboard",
+  "description": "B2B Loyalty-as-a-Service merchant dashboard with KPI tracking.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

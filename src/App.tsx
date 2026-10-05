@@ -12,9 +12,16 @@ import { Analytics } from './components/Analytics';
 import { AIInsight } from './components/AIInsight';
 import { Simulator } from './components/Simulator';
 import { AskAI } from './components/AskAI';
-import { ViewState, RulesState, Customer, Reward, Program, Rule, Campaign, RedemptionRule } from './types';
+import { MerchantPrograms } from './components/MerchantPrograms';
+import { MerchantCampaigns } from './components/MerchantCampaigns';
+import { MerchantRequests } from './components/MerchantRequests';
+import { MerchantTiers } from './components/MerchantTiers';
+import { MerchantAnalytics } from './components/MerchantAnalytics';
+import { CustomerOnboarding } from './components/CustomerOnboarding';
+import { CustomerInsights } from './components/CustomerInsights';
+import { ViewState, RulesState, Customer, Reward, Program, Rule, Campaign, RedemptionRule, ProgramRequest, CampaignRequest, TierRequest } from './types';
 import { motion, AnimatePresence } from 'motion/react';
-import { Hexagon, ArrowRight, Building2, MapPin } from 'lucide-react';
+import { Hexagon, ArrowRight, Building2, MapPin, Store, ShieldCheck } from 'lucide-react';
 
 function PlaceholderView({ title }: { title: string }) {
   return (
@@ -30,27 +37,65 @@ function PlaceholderView({ title }: { title: string }) {
 }
 
 export default function App() {
-  const [authView, setAuthView] = useState<'login' | 'register' | 'authenticated'>('login');
-  const [currentMerchant, setCurrentMerchant] = useState({
-    businessName: '',
-    industry: '',
-    address: ''
-  });
-  
-  const [loginEmail, setLoginEmail] = useState('admin@sampathbank.com');
-  const [loginPassword, setLoginPassword] = useState('demo123');
-  
-  const [regStep, setRegStep] = useState(1);
-  const [regData, setRegData] = useState({
-    email: '',
-    password: '',
-    confirmPassword: '',
-    businessName: '',
-    industry: 'Banking',
-    address: ''
-  });
+  const [authView, setAuthView] = useState<'login' | 'authenticated'>('login');
+  const [userRole, setUserRole] = useState<'hdps_admin' | 'merchant' | null>(null);
 
   const [currentView, setCurrentView] = useState<ViewState>('dashboard');
+  
+  // Requests State
+  const [programRequests, setProgramRequests] = useState<ProgramRequest[]>([]);
+  const [campaignRequests, setCampaignRequests] = useState<CampaignRequest[]>([
+    {
+      id: 'c1',
+      merchantName: 'ABC Merchant',
+      campaignName: 'Avurudu VIP Booster',
+      description: 'Special promotion for the holiday season to boost VIP sales.',
+      productType: ['All Products'],
+      customerGroup: 'Gold & Platinum',
+      campaignType: 'Promotion',
+      startDate: '2026-10-01',
+      endDate: '2026-10-31',
+      recurring: false,
+      recurrenceDetails: '',
+      socialMediaChannels: ['Instagram', 'Facebook'],
+      geographicAreas: 'All Regions',
+      status: 'Active',
+      requestDate: '2026-08-01'
+    },
+    {
+      id: 'c2',
+      merchantName: 'ABC Merchant',
+      campaignName: 'Weekend Flash Discount',
+      description: 'Quick weekend sale to re-engage past customers.',
+      productType: ['Specific Categories'],
+      customerGroup: 'Lapsed Customers',
+      campaignType: 'Discount',
+      startDate: '2026-08-15',
+      endDate: '2026-08-17',
+      recurring: false,
+      recurrenceDetails: '',
+      socialMediaChannels: ['SMS Only'],
+      geographicAreas: 'Colombo',
+      status: 'Pending',
+      requestDate: '2026-08-05'
+    }
+  ]);
+  const [tierRequests, setTierRequests] = useState<TierRequest[]>([]);
+
+  const [activeTiers, setActiveTiers] = useState([
+    { id: 't1', name: 'Bronze' },
+    { id: 't2', name: 'Silver' },
+    { id: 't3', name: 'Gold' }
+  ]);
+  const [activeAccumulationRules, setActiveAccumulationRules] = useState([
+    { id: 'acc1', name: 'Base Points Earning' },
+    { id: 'acc2', name: 'Double Points Weekend' }
+  ]);
+  const [activeRedemptionRules, setActiveRedemptionRules] = useState([
+    { id: 'red1', name: 'Standard Redemption' },
+    { id: 'red2', name: 'Partner Voucher' }
+  ]);
+
   const [rules, setRules] = useState<RulesState>([
     {
       id: 'ru1',
@@ -70,7 +115,7 @@ export default function App() {
   const [customers, setCustomers] = useState<Customer[]>([
     {
       id: 'c1',
-      avatarUrl: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Vanessa',
+      avatarUrl: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Vanessa&mouth=smile',
       fullName: 'Vanessa Lennox',
       email: 'vanessa@example.com',
       phone: '+1 (555) 019-2041',
@@ -115,19 +160,15 @@ export default function App() {
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
   const [redemptionRules, setRedemptionRules] = useState<RedemptionRule[]>([]);
 
-  const handleLogin = (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleLogin = (role: 'hdps_admin' | 'merchant') => {
+    setUserRole(role);
+    setCurrentView(role === 'hdps_admin' ? 'dashboard' : 'merchant-programs');
     setAuthView('authenticated');
   };
 
-  const handleRegister = (e: React.FormEvent) => {
-    e.preventDefault();
-    setCurrentMerchant({
-      businessName: regData.businessName || 'New Business',
-      industry: regData.industry,
-      address: regData.address
-    });
-    setAuthView('authenticated');
+  const handleLogout = () => {
+    setAuthView('login');
+    setUserRole(null);
   };
 
   return (
@@ -145,179 +186,29 @@ export default function App() {
               <Hexagon className="w-8 h-8 text-white" />
             </div>
             <h1 className="text-2xl font-black text-slate-800 mb-1">Hitachi Loyalty Magic™</h1>
-            <p className="text-slate-500 text-sm font-medium mb-8">Management Portal</p>
+            <p className="text-slate-500 text-sm font-medium mb-8 text-center">Select your portal to continue</p>
 
-            <form onSubmit={handleLogin} className="w-full flex flex-col gap-4">
-              <div>
-                <label className="block text-xs font-bold text-slate-500 mb-2 uppercase tracking-wide">Email Address</label>
-                <input
-                  type="email"
-                  value={loginEmail}
-                  onChange={(e) => setLoginEmail(e.target.value)}
-                  className="w-full bg-white border border-slate-200 rounded-xl px-4 py-3.5 text-sm font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
-                  required
-                />
-              </div>
-              <div>
-                <label className="block text-xs font-bold text-slate-500 mb-2 uppercase tracking-wide">Password</label>
-                <input
-                  type="password"
-                  value={loginPassword}
-                  onChange={(e) => setLoginPassword(e.target.value)}
-                  className="w-full bg-white border border-slate-200 rounded-xl px-4 py-3.5 text-sm font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
-                  required
-                />
-              </div>
-              
-              <button 
-                type="submit"
-                className="w-full bg-gradient-to-r from-indigo-500 to-blue-600 hover:from-indigo-600 hover:to-blue-700 text-white px-4 py-3.5 rounded-xl text-sm font-bold shadow-lg shadow-indigo-500/30 transition-all mt-4 flex justify-center items-center gap-2 group"
+            <div className="w-full flex flex-col gap-4">
+              <button
+                onClick={() => handleLogin('hdps_admin')}
+                className="w-full bg-slate-900 hover:bg-slate-800 text-white rounded-xl px-4 py-4 text-sm font-bold transition-all shadow-md flex items-center justify-center gap-3 group"
               >
-                Sign In <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                <ShieldCheck className="w-5 h-5 group-hover:scale-110 transition-transform" />
+                Log in as HDPS Admin
               </button>
-            </form>
-
-            <div className="mt-8">
-              <button onClick={() => setAuthView('register')} className="text-sm font-bold text-indigo-600 hover:text-indigo-800 transition-colors">
-                New Merchant? Create an Account
-              </button>
-            </div>
-          </motion.div>
-        )}
-
-        {authView === 'register' && (
-          <motion.div 
-            key="register"
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.95 }}
-            className="w-full max-w-2xl bg-white/80 backdrop-blur-xl rounded-[32px] shadow-[0_20px_60px_-15px_rgba(0,0,0,0.3)] border border-white/60 p-10 flex flex-col relative z-10"
-          >
-            <div className="flex items-center gap-4 mb-8">
-              <div className="w-12 h-12 bg-gradient-to-br from-indigo-500 to-indigo-700 rounded-2xl flex items-center justify-center shadow-lg shadow-indigo-500/30">
-                <Hexagon className="w-6 h-6 text-white" />
+              
+              <div className="relative flex items-center py-2">
+                <div className="flex-grow border-t border-slate-200"></div>
+                <span className="flex-shrink-0 mx-4 text-xs font-bold text-slate-400 uppercase tracking-wider">or</span>
+                <div className="flex-grow border-t border-slate-200"></div>
               </div>
-              <div>
-                <h1 className="text-xl font-black text-slate-800">Merchant Onboarding</h1>
-                <p className="text-slate-500 text-sm font-medium">Step {regStep} of 2</p>
-              </div>
-            </div>
 
-            <form onSubmit={regStep === 1 ? (e) => { e.preventDefault(); setRegStep(2); } : handleRegister} className="w-full flex flex-col gap-5">
-              {regStep === 1 ? (
-                <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="flex flex-col gap-4">
-                  <div>
-                    <label className="block text-xs font-bold text-slate-500 mb-2 uppercase tracking-wide">Work Email</label>
-                    <input
-                      type="email"
-                      value={regData.email}
-                      onChange={(e) => setRegData({...regData, email: e.target.value})}
-                      className="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 text-sm font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
-                      required
-                    />
-                  </div>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-xs font-bold text-slate-500 mb-2 uppercase tracking-wide">Password</label>
-                      <input
-                        type="password"
-                        value={regData.password}
-                        onChange={(e) => setRegData({...regData, password: e.target.value})}
-                        className="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 text-sm font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
-                        required
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-xs font-bold text-slate-500 mb-2 uppercase tracking-wide">Confirm Password</label>
-                      <input
-                        type="password"
-                        value={regData.confirmPassword}
-                        onChange={(e) => setRegData({...regData, confirmPassword: e.target.value})}
-                        className="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 text-sm font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
-                        required
-                      />
-                    </div>
-                  </div>
-                  
-                  <button 
-                    type="submit"
-                    className="w-full bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-3.5 rounded-xl text-sm font-bold shadow-md transition-all mt-4"
-                  >
-                    Next Step
-                  </button>
-                </motion.div>
-              ) : (
-                <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="flex flex-col gap-4">
-                  <div>
-                    <label className="block text-xs font-bold text-slate-500 mb-2 uppercase tracking-wide">Business Name</label>
-                    <div className="relative">
-                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                        <Building2 className="w-5 h-5 text-slate-400" />
-                      </div>
-                      <input
-                        type="text"
-                        value={regData.businessName}
-                        onChange={(e) => setRegData({...regData, businessName: e.target.value})}
-                        className="w-full bg-white border border-slate-200 rounded-xl pl-10 pr-4 py-3 text-sm font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
-                        required
-                        placeholder="e.g. CTBC Bank"
-                      />
-                    </div>
-                  </div>
-                  
-                  <div>
-                    <label className="block text-xs font-bold text-slate-500 mb-2 uppercase tracking-wide">Industry</label>
-                    <select
-                      value={regData.industry}
-                      onChange={(e) => setRegData({...regData, industry: e.target.value})}
-                      className="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 text-sm font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
-                    >
-                      <option value="Banking">Banking & Finance</option>
-                      <option value="Retail">Retail</option>
-                      <option value="Hospitality">Hospitality</option>
-                      <option value="Other">Other</option>
-                    </select>
-                  </div>
-
-                  <div>
-                    <label className="block text-xs font-bold text-slate-500 mb-2 uppercase tracking-wide">Physical Address</label>
-                    <div className="relative">
-                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                        <MapPin className="w-5 h-5 text-slate-400" />
-                      </div>
-                      <input
-                        type="text"
-                        value={regData.address}
-                        onChange={(e) => setRegData({...regData, address: e.target.value})}
-                        className="w-full bg-white border border-slate-200 rounded-xl pl-10 pr-4 py-3 text-sm font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
-                        required
-                        placeholder="Main headquarters or store location"
-                      />
-                    </div>
-                  </div>
-                  
-                  <div className="flex gap-3 mt-4">
-                    <button 
-                      type="button"
-                      onClick={() => setRegStep(1)}
-                      className="flex-1 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 px-4 py-3.5 rounded-xl text-sm font-bold shadow-sm transition-all"
-                    >
-                      Back
-                    </button>
-                    <button 
-                      type="submit"
-                      className="flex-[2] bg-gradient-to-r from-indigo-500 to-blue-600 hover:from-indigo-600 hover:to-blue-700 text-white px-4 py-3.5 rounded-xl text-sm font-bold shadow-lg shadow-indigo-500/30 transition-all"
-                    >
-                      Complete Registration & Launch
-                    </button>
-                  </div>
-                </motion.div>
-              )}
-            </form>
-
-            <div className="mt-8 text-center border-t border-slate-100 pt-6">
-              <button onClick={() => { setAuthView('login'); setRegStep(1); }} className="text-sm font-bold text-slate-500 hover:text-indigo-600 transition-colors">
-                Already have an account? Log in
+              <button
+                onClick={() => handleLogin('merchant')}
+                className="w-full bg-white border border-slate-200 hover:border-indigo-300 hover:bg-indigo-50 text-slate-700 hover:text-indigo-700 rounded-xl px-4 py-4 text-sm font-bold transition-all shadow-sm flex items-center justify-center gap-3 group"
+              >
+                <Store className="w-5 h-5 group-hover:scale-110 transition-transform" />
+                Log in as Merchant (ABC Merchant)
               </button>
             </div>
           </motion.div>
@@ -331,7 +222,7 @@ export default function App() {
             exit={{ opacity: 0 }}
             className="flex w-full h-full max-w-[1600px] bg-slate-50/90 backdrop-blur-xl rounded-[32px] shadow-[0_20px_60px_-15px_rgba(0,0,0,0.3)] border border-white/60 overflow-hidden relative z-10"
           >
-            <Sidebar currentView={currentView} onViewChange={setCurrentView} onLogout={() => setAuthView('login')} />
+            <Sidebar currentView={currentView} onViewChange={setCurrentView} onLogout={handleLogout} userRole={userRole} />
             
             <main className="flex-1 flex flex-col h-full overflow-hidden relative z-10 bg-slate-100/50">
               <Header />
@@ -347,6 +238,37 @@ export default function App() {
                 {currentView === 'analytics' && <Analytics />}
                 {currentView === 'ai-insight' && <AIInsight />}
                 {currentView === 'simulation' && <Simulator customers={customers} setCustomers={setCustomers} programs={programs} />}
+                
+                {currentView === 'merchant-requests' && (
+                  <MerchantRequests 
+                    programRequests={programRequests} setProgramRequests={setProgramRequests}
+                    campaignRequests={campaignRequests} setCampaignRequests={setCampaignRequests}
+                    tierRequests={tierRequests} setTierRequests={setTierRequests}
+                  />
+                )}
+                {currentView === 'merchant-tiers' && (
+                  <MerchantTiers tierRequests={tierRequests} setTierRequests={setTierRequests} activeTiers={activeTiers} />
+                )}
+                {currentView === 'merchant-programs' && (
+                  <MerchantPrograms 
+                    programs={programs} 
+                    programRequests={programRequests} 
+                    setProgramRequests={setProgramRequests} 
+                    activeTiers={activeTiers}
+                    activeAccumulationRules={activeAccumulationRules}
+                    activeRedemptionRules={activeRedemptionRules}
+                  />
+                )}
+                {currentView === 'merchant-campaigns' && (
+                  <MerchantCampaigns campaigns={campaigns} campaignRequests={campaignRequests} setCampaignRequests={setCampaignRequests} />
+                )}
+                {currentView === 'merchant-onboarding' && (
+                  <CustomerOnboarding customers={customers} setCustomers={setCustomers} />
+                )}
+                {currentView === 'merchant-customer-insights' && (
+                  <CustomerInsights customers={customers} />
+                )}
+                {currentView === 'merchant-analytics' && <MerchantAnalytics />}
               </div>
             </main>
           </motion.div>

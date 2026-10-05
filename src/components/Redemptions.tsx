@@ -375,8 +375,8 @@ export function Redemptions({ redemptionRules, setRedemptionRules }: Redemptions
                             multiple
                             value={formData.applicableBranches}
                             onChange={(e) => {
-                              const options = Array.from(e.target.options);
-                              setFormData({ ...formData, applicableBranches: options.filter(o => o.selected).map(o => o.value) });
+                              const selectedValues = Array.from(e.target.selectedOptions).map((o: any) => o.value);
+                              setFormData({ ...formData, applicableBranches: selectedValues });
                             }}
                             className="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 text-sm font-medium text-slate-800 focus:outline-none h-24"
                           >

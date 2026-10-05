@@ -1,4 +1,58 @@
-export type ViewState = 'dashboard' | 'programs' | 'customers' | 'rules' | 'campaigns' | 'rewards' | 'analytics' | 'ai-insight' | 'simulation' | 'redemptions';
+export type ViewState = 'dashboard' | 'programs' | 'customers' | 'rules' | 'campaigns' | 'rewards' | 'analytics' | 'ai-insight' | 'simulation' | 'redemptions' | 'merchant-requests' | 'merchant-programs' | 'merchant-campaigns' | 'merchant-analytics' | 'merchant-tiers' | 'merchant-onboarding' | 'merchant-customer-insights';
+
+export interface TierRequest {
+  id: string;
+  merchantName: string;
+  tierName: string;
+  description: string;
+  pointsNeeded: number;
+  tierColor: string;
+  status: 'Pending' | 'Fulfilled' | 'Rejected';
+  requestDate: string;
+}
+
+export interface ProgramRequest {
+  id: string;
+  merchantName: string;
+  programName: string;
+  description: string;
+  
+  selectedTier: string;
+  accRuleType: 'existing' | 'new';
+  selectedAccRule?: string;
+  newAccRuleRatio?: string;
+  newAccRuleDesc?: string;
+  
+  redRuleType: 'existing' | 'new';
+  selectedRedRule?: string;
+  newRedRuleLogic?: string;
+  
+  productScope: string[];
+  startDate: string;
+  endDate: string;
+  programColor: string;
+  
+  status: 'Pending' | 'Fulfilled' | 'Rejected';
+  requestDate: string;
+}
+
+export interface CampaignRequest {
+  id: string;
+  merchantName: string;
+  campaignName: string;
+  description: string;
+  productType: string[];
+  customerGroup: string;
+  campaignType: string;
+  startDate: string;
+  endDate: string;
+  recurring: boolean;
+  recurrenceDetails: string;
+  socialMediaChannels: string[];
+  geographicAreas: string;
+  status: 'Pending' | 'Active' | 'Fulfilled' | 'Rejected';
+  requestDate: string;
+}
 
 export interface GiftCardTier {
   id: string;

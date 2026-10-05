@@ -1,7 +1,7 @@
 import React from 'react';
 import { 
   Users, UserCheck, DollarSign, Activity, 
-  TrendingUp, TrendingDown, MapPin, Target, Sparkles, Send 
+  TrendingUp, TrendingDown, MapPin, Target, Sparkles, Send, Info
 } from 'lucide-react';
 import { 
   ComposedChart, Line, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer,
@@ -51,12 +51,21 @@ const RISK_CUSTOMERS = [
   { id: 4, name: 'Diana Prince', spend: '$5,200', lastVisit: '2023-11-25', risk: 'Low', action: 'No action needed' },
 ];
 
-export function Analytics() {
+const ROI_DATA = [
+  { name: 'Q1', revenue: 28000, cost: 6500 },
+  { name: 'Q2', revenue: 35000, cost: 7200 },
+  { name: 'Q3', revenue: 41000, cost: 8100 },
+  { name: 'Q4', revenue: 38000, cost: 5800 },
+];
+
+export function MerchantAnalytics() {
   return (
     <div className="flex-1 p-4 lg:p-8 relative z-10 h-full overflow-y-auto flex flex-col gap-8 pb-24">
       <div>
-        <h1 className="text-2xl font-bold text-slate-800">Analytics & AI Insights</h1>
-        <p className="text-sm text-slate-500">Monitor program performance and leverage AI for retention.</p>
+        <h1 className="text-3xl font-bold text-slate-800 tracking-tight flex items-center gap-3">
+          <Activity className="w-8 h-8 text-indigo-500" /> Analytics & ROI Insights
+        </h1>
+        <p className="text-sm text-slate-500 mt-2 font-medium">Monitor your program performance and track return on investment.</p>
       </div>
 
       {/* Top Row KPIs */}
@@ -331,45 +340,58 @@ export function Analytics() {
 
       {/* Row 4 - Widgets */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 shrink-0">
+        
+        {/* NEW ROI WIDGET */}
         <div className="bg-white/80 backdrop-blur-md rounded-3xl p-6 shadow-sm border border-slate-100 flex flex-col">
-          <h3 className="text-lg font-bold text-slate-800 mb-6">Cohort Retention Matrix</h3>
-          <div className="flex-1 flex items-center justify-center">
-            <div className="w-full max-w-[500px] grid grid-cols-7 gap-1">
-              <div className="col-span-1"></div>
-              {['M1', 'M2', 'M3', 'M4', 'M5', 'M6'].map(m => (
-                <div key={m} className="text-[10px] font-bold text-slate-400 text-center uppercase">{m}</div>
-              ))}
-              
-              {[
-                { cohort: 'Jan', vals: [100, 85, 75, 60, 55, 50] },
-                { cohort: 'Feb', vals: [100, 82, 70, 65, 50, 0] },
-                { cohort: 'Mar', vals: [100, 88, 80, 75, 0, 0] },
-                { cohort: 'Apr', vals: [100, 90, 85, 0, 0, 0] },
-                { cohort: 'May', vals: [100, 92, 0, 0, 0, 0] },
-                { cohort: 'Jun', vals: [100, 0, 0, 0, 0, 0] },
-              ].map((row, i) => (
-                <React.Fragment key={row.cohort}>
-                  <div className="text-[10px] font-bold text-slate-500 flex items-center">{row.cohort}</div>
-                  {row.vals.map((v, j) => {
-                    if (v === 0) return <div key={j} className="bg-slate-50 rounded-md aspect-square"></div>;
-                    const opacity = v / 100;
-                    return (
-                      <div 
-                        key={j} 
-                        className="rounded-md aspect-square flex items-center justify-center text-[10px] font-bold text-indigo-900 border border-indigo-100 transition-transform hover:scale-110 cursor-pointer"
-                        style={{ backgroundColor: `rgba(99, 102, 241, ${opacity * 0.8})` }}
-                        title={`${v}% Retention`}
-                      >
-                        {v}%
-                      </div>
-                    )
-                  })}
-                </React.Fragment>
-              ))}
+          <div className="flex justify-between items-start mb-6">
+            <h3 className="text-lg font-bold text-slate-800 flex items-center gap-2">
+              Program ROI (Return on Investment)
+              <div className="relative group cursor-pointer">
+                <Info className="w-4 h-4 text-slate-400" />
+                <div className="absolute hidden group-hover:block bottom-full left-1/2 -translate-x-1/2 mb-2 w-48 bg-slate-800 text-white text-[10px] p-2 rounded-lg shadow-xl text-center z-10">
+                  Formula: (Incremental Revenue - Reward Costs) / Reward Costs
+                  <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-slate-800" />
+                </div>
+              </div>
+            </h3>
+          </div>
+          
+          <div className="mb-6">
+            <div className="bg-gradient-to-r from-emerald-500 to-emerald-400 bg-clip-text text-transparent text-5xl font-black tracking-tight mb-3">
+              412%
             </div>
+            <div className="flex flex-col gap-1">
+              <div className="flex items-center justify-between text-sm">
+                <span className="font-bold text-slate-500">Attributed Loyalty Revenue:</span>
+                <span className="font-bold text-emerald-600">$142,000</span>
+              </div>
+              <div className="flex items-center justify-between text-sm">
+                <span className="font-bold text-slate-500">Total Reward Cost (Liability):</span>
+                <span className="font-bold text-rose-500">$27,600</span>
+              </div>
+            </div>
+          </div>
+
+          <div className="flex-1 min-h-[180px]">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={ROI_DATA} margin={{ top: 10, right: 0, left: -20, bottom: 0 }}>
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{fill: '#94a3b8', fontSize: 10}} />
+                <YAxis axisLine={false} tickLine={false} tick={{fill: '#94a3b8', fontSize: 10}} />
+                <Tooltip 
+                  cursor={{fill: '#f8fafc'}}
+                  contentStyle={{borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)'}}
+                  formatter={(value: number) => [`$${value.toLocaleString()}`, '']}
+                />
+                <Legend iconType="circle" wrapperStyle={{paddingTop: '10px', fontSize: '12px', fontWeight: 600}} />
+                <Bar dataKey="revenue" name="Revenue" fill="#10b981" radius={[4, 4, 0, 0]} barSize={20} />
+                <Bar dataKey="cost" name="Cost" fill="#f43f5e" radius={[4, 4, 0, 0]} barSize={20} />
+              </BarChart>
+            </ResponsiveContainer>
           </div>
         </div>
 
+        {/* Peak Shopping Hours */}
         <div className="bg-white/80 backdrop-blur-md rounded-3xl p-6 shadow-sm border border-slate-100 flex flex-col">
           <h3 className="text-lg font-bold text-slate-800 mb-6">Peak Shopping Hours</h3>
           <div className="flex-1 min-h-[250px]">
